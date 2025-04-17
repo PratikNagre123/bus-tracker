@@ -1,0 +1,70 @@
+[
+  {
+    "driver_id": "1",
+    "start": "Nagpur",
+    "end": "Akola",
+    "major_cities": [
+      "Wardha",
+      "Pulgaon",
+      "Amravati",
+      "Murtizapur"
+    ],
+    "plate": "MH22AB1234",
+    "latitude": 20.712278567012167,
+    "longitude": 78.57459181350245,
+    "timestamp": "2025-04-15T12:05:43.130170"
+  },
+  {
+    "driver_id": "2",
+    "start": "Nagpur",
+    "end": "Parbhani",
+    "major_cities": [
+      "Wardha",
+      "Yavatmal",
+      "Digras",
+      "Pusad",
+      "Hingoli",
+      "Aundha"
+    ],
+    "plate": "MH22AB1235",
+    "latitude": 20.712143395214532,
+    "longitude": 78.57457607921776,
+    "timestamp": "2025-04-15T12:14:51.107076"
+  },
+  {
+    "driver_id": "3",
+    "start": "Nagpur",
+    "end": "Latur",
+    "major_cities": [
+      "Wardha",
+      "Yavatmal",
+      "Digras",
+      "Pusad",
+      "Hingoli",
+      "Aundha",
+      "Parbhani",
+      "Gangakhed",
+      "Ambajogai"
+    ],
+    "plate": "MH22AB1236",
+    "latitude": 20.712221488014304,
+    "longitude": 78.57455127886121,
+    "timestamp": "2025-04-15T12:16:18.026875"
+  },
+  {
+    "driver_id": "4",
+    "start": "Nagpur",
+    "end": "Latur",
+    "major_cities": [
+      "Wardha",
+      "Yavatmal",
+      "Umarkhed",
+      "Nanded",
+      "Ahmedpur"
+    ],
+    "plate": "MH22AB1237",
+    "latitude": 20.706624672338897,
+    "longitude": 78.57014741252118,
+    "timestamp": "2025-04-15T15:59:47.955415"
+  }
+]

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Information - Bus Tracking System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Bus Information</h1>
+        <form id="busInfoForm">
+            <div class="form-group">
+                <label for="start">Starting Point</label>
+                <input type="text" id="start" required>
+                <div class="error" id="startError"></div>
+            </div>
+            <div class="form-group">
+                <label for="end">Ending Point</label>
+                <input type="text" id="end" required>
+                <div class="error" id="endError"></div>
+            </div>
+            <div class="form-group">
+                <label for="majorCities">Major Cities (comma-separated)</label>
+                <input type="text" id="majorCities" required>
+                <div class="error" id="majorCitiesError"></div>
+            </div>
+            <div class="form-group">
+                <label for="plate">Bus Number Plate</label>
+                <input type="text" id="plate" required>
+                <div class="error" id="plateError"></div>
+            </div>
+            <button type="submit" class="btn driver-btn">Start Location Sharing</button>
+        </form>
+        
+        <div id="map" style="margin-top: 2rem;"></div>
+        <div class="button-container" style="margin-top: 1rem;">
+            <a href="track.html" class="btn passenger-btn">View Live Location</a>
+            <button id="stopSharingBtn" class="btn driver-btn" style="background-color: #f44336; margin-top: 1rem;">Stop Sharing Location</button>
+        </div>
+    </div>
+
+    <script>
+        // Check if driver is logged in
+        const driverId = sessionStorage.getItem('driverId');
+        if (!driverId) {
+            window.location.href = 'driver_login.html';
+        }
+
+        // Initialize map
+        const map = L.map('map').setView([20.5937, 78.9629], 5); // Default to India
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        let watchId = null;
+        let marker = null;
+
+        document.getElementById('busInfoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const start = document.getElementById('start').value;
+            const end = document.getElementById('end').value;
+            const majorCities = document.getElementById('majorCities').value;
+            const plate = document.getElementById('plate').value;
+
+            // Start location tracking
+            if (watchId === null) {
+                watchId = navigator.geolocation.watchPosition(
+                    async (position) => {
+                        const { latitude, longitude } = position.coords;
+                        
+                        // Update map marker
+                        if (marker) {
+                            map.removeLayer(marker);
+                        }
+                        marker = L.marker([latitude, longitude]).addTo(map);
+                        map.setView([latitude, longitude], 13);
+
+                        // Send location to server
+                        try {
+                            await fetch('http://localhost:5000/submit_bus_info', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    driver_id: driverId,
+                                    start: start,
+                                    end: end,
+                                    major_cities: majorCities,
+                                    plate: plate,
+                                    latitude: latitude,
+                                    longitude: longitude
+                                })
+                            });
+                        } catch (error) {
+                            console.error('Error updating location:', error);
+                        }
+                    },
+                    (error) => {
+                        console.error('Error getting location:', error);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 5000,
+                        maximumAge: 0
+                    }
+                );
+
+                // Update button text
+                e.target.querySelector('button').textContent = 'Stop Location Sharing';
+            } else {
+                // Stop location tracking
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+                if (marker) {
+                    map.removeLayer(marker);
+                    marker = null;
+                }
+                // Update button text
+                e.target.querySelector('button').textContent = 'Start Location Sharing';
+            }
+        });
+
+        // Add event listener for the Stop Sharing Location button
+        document.getElementById('stopSharingBtn').addEventListener('click', async () => {
+            if (watchId) {
+                // Stop location tracking
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+                if (marker) {
+                    map.removeLayer(marker);
+                    marker = null;
+                }
+                
+                // Reset the form button text
+                document.querySelector('#busInfoForm button').textContent = 'Start Location Sharing';
+                
+                // Show success message
+                alert('Location sharing has been stopped.');
+            } else {
+                alert('Location sharing is not currently active.');
+            }
+        });
+    </script>
+</body>
+</html> 

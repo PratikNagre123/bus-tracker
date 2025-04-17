@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Driver Login - Bus Tracking System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Driver Login</h1>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="driverId">Driver ID</label>
+                <input type="text" id="driverId" required>
+                <div class="error" id="driverIdError"></div>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required>
+                <div class="error" id="passwordError"></div>
+            </div>
+            <button type="submit" class="btn driver-btn">Sign In</button>
+        </form>
+        <p style="margin-top: 1rem;">Don't have an account? <a href="driver_signup.html">Create New Account</a></p>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const driverId = document.getElementById('driverId').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('http://localhost:5000/login_driver', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        driver_id: driverId,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Store driver ID in session storage
+                    sessionStorage.setItem('driverId', driverId);
+                    // Redirect to bus info page
+                    window.location.href = 'bus_info.html';
+                } else {
+                    document.getElementById('passwordError').textContent = data.error;
+                    document.getElementById('passwordError').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('passwordError').textContent = 'An error occurred. Please try again.';
+                document.getElementById('passwordError').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html> 

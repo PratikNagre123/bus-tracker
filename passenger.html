@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passenger Interface - Bus Tracking System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Find Your Bus</h1>
+        <form id="searchForm">
+            <div class="form-group">
+                <label for="currentLocation">Current Location</label>
+                <input type="text" id="currentLocation" required>
+                <div class="error" id="currentLocationError"></div>
+            </div>
+            <div class="form-group">
+                <label for="destination">Destination</label>
+                <input type="text" id="destination" required>
+                <div class="error" id="destinationError"></div>
+            </div>
+            <button type="submit" class="btn passenger-btn">Find Buses</button>
+        </form>
+
+        <div id="busResults" style="margin-top: 2rem;"></div>
+        <div id="map" style="margin-top: 2rem;"></div>
+    </div>
+
+    <script>
+        // Initialize map
+        const map = L.map('map').setView([20.5937, 78.9629], 5); // Default to India
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        let marker = null;
+        let updateInterval = null;
+
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const currentLocation = document.getElementById('currentLocation').value.toLowerCase().trim();
+            const destination = document.getElementById('destination').value.toLowerCase().trim();
+
+            try {
+                const response = await fetch('http://localhost:5000/find_buses', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        current_location: currentLocation,
+                        destination: destination
+                    })
+                });
+
+                const buses = await response.json();
+                displayBusResults(buses, currentLocation, destination);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('busResults').innerHTML = '<p class="error">An error occurred while searching for buses.</p>';
+            }
+        });
+
+        function displayBusResults(buses, currentLocation, destination) {
+            const resultsDiv = document.getElementById('busResults');
+            resultsDiv.innerHTML = '';
+
+            if (buses.length === 0) {
+                resultsDiv.innerHTML = '<p>No buses found for your route.</p>';
+                return;
+            }
+
+            // Filter buses where both current location and destination match the route
+            const matchingBuses = buses.filter(bus => {
+                const start = bus.start.toLowerCase();
+                const end = bus.end.toLowerCase();
+                const majorCities = bus.major_cities.map(city => city.toLowerCase());
+
+                // Check if current location matches any point in the route
+                const currentLocationMatches = 
+                    currentLocation === start || 
+                    currentLocation === end || 
+                    majorCities.includes(currentLocation);
+
+                // Check if destination matches any point in the route
+                const destinationMatches = 
+                    destination === start || 
+                    destination === end || 
+                    majorCities.includes(destination);
+
+                return currentLocationMatches && destinationMatches;
+            });
+
+            if (matchingBuses.length === 0) {
+                resultsDiv.innerHTML = '<p>No buses found that pass through both your current location and destination.</p>';
+                return;
+            }
+
+            matchingBuses.forEach(bus => {
+                const busCard = document.createElement('div');
+                busCard.className = 'bus-card';
+                busCard.innerHTML = `
+                    <div class="bus-info">
+                        <span>Bus Plate: ${bus.plate}</span>
+                        <span>Driver ID: ${bus.driver_id}</span>
+                    </div>
+                    <div class="bus-route">
+                        Route: ${bus.start} → ${bus.end}
+                    </div>
+                    <div class="bus-route">
+                        Major Cities: ${bus.major_cities.join(', ')}
+                    </div>
+                    <div class="bus-route">
+                        <strong>Your Route:</strong> ${currentLocation} → ${destination}
+                    </div>
+                `;
+
+                busCard.addEventListener('click', () => {
+                    trackBus(bus.driver_id);
+                });
+
+                resultsDiv.appendChild(busCard);
+            });
+        }
+
+        function trackBus(driverId) {
+            // Clear previous interval if exists
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+
+            // Function to update bus location
+            async function updateBusLocation() {
+                try {
+                    const response = await fetch(`http://localhost:5000/get_bus_location?driver_id=${driverId}`);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        const { latitude, longitude } = data;
+                        
+                        // Update map marker
+                        if (marker) {
+                            map.removeLayer(marker);
+                        }
+                        marker = L.marker([latitude, longitude]).addTo(map);
+                        map.setView([latitude, longitude], 13);
+                    }
+                } catch (error) {
+                    console.error('Error updating location:', error);
+                }
+            }
+
+            // Start periodic updates
+            updateInterval = setInterval(updateBusLocation, 5000); // Update every 5 seconds
+            updateBusLocation(); // Initial update
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+    </script>
+</body>
+</html> 

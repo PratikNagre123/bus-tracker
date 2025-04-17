@@ -1,0 +1,26 @@
+[
+  {
+    "driver_id": "1",
+    "full_name": "Admin",
+    "email": "admin@gmail.com",
+    "password": "Admin@123"
+  },
+  {
+    "driver_id": "2",
+    "full_name": "Alpha",
+    "email": "alpha@gmail.com",
+    "password": "Admin@123"
+  },
+  {
+    "driver_id": "3",
+    "full_name": "beta",
+    "email": "beta@gmail.com",
+    "password": "Admin@123"
+  },
+  {
+    "driver_id": "4",
+    "full_name": "gamma",
+    "email": "gamma@gmail.com",
+    "password": "Admin@123"
+  }
+]

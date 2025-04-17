@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Bus Tracking System - Track buses in real-time">
+    <meta name="theme-color" content="#2196F3">
+    <title>Bus Tracking System</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Bus Tracking System</h1>
+        <div class="button-container">
+            <a href="driver_login.html" class="btn driver-btn">Driver</a>
+            <a href="passenger.html" class="btn passenger-btn">Passenger</a>
+        </div>
+    </div>
+    <script>
+        // Register service worker for PWA functionality
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+    </script>
+</body>
+</html> 
