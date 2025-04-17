@@ -20,13 +20,17 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+    const url = new URL(event.request.url);
+
+    // Bypass caching for API calls (e.g., to Render or other domains)
+    if (url.origin !== location.origin) {
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request)
             .then(response => {
-                if (response) {
-                    return response;
-                }
-                return fetch(event.request);
+                return response || fetch(event.request);
             })
     );
-}); 
+});
